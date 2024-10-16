@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
+from numpy import log
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -217,6 +218,7 @@ def _build_text_tower(
     return text
 
 
+# After CLIP class, make a class DisentangledCLIP which modifies 
 class CLIP(nn.Module):
     output_dict: torch.jit.Final[bool]
 
@@ -233,6 +235,7 @@ class CLIP(nn.Module):
     ):
         super().__init__()
         self.output_dict = output_dict
+        self.embed_dim = embed_dim
 
         self.visual = _build_vision_tower(embed_dim, vision_cfg, quick_gelu, cast_dtype)
 
@@ -243,7 +246,7 @@ class CLIP(nn.Module):
         self.token_embedding = text.token_embedding
         self.positional_embedding = text.positional_embedding
         self.ln_final = text.ln_final
-        self.text_projection = text.text_projection
+        self.text_projection = text.text_projection # Modify this guy
         self.text_pool_type = text.pool_type
         self.register_buffer('attn_mask', text.attn_mask, persistent=False)
 
@@ -392,6 +395,16 @@ class CustomTextCLIP(nn.Module):
             return image_features, text_features, self.logit_scale.exp(), self.logit_bias
         return image_features, text_features, self.logit_scale.exp()
 
+class DisentangledCLIP(CLIP):
+    def __init__(self, *args, out_dim=1024, **kwargs):
+        super().__init__(*args, **kwargs)
+        import ipdb
+        ipdb.set_trace()
+        for name, param in self.named_parameters():
+            if name not in ['text_projection.weight', 'text_projection.bias', 'visual.proj.weight', 'visual.proj.bias']:
+                param.requires_grad = False
+        self.text_projection = nn.Linear(self.embed_dim, out_dim)
+        self.visual.proj = nn.Linear(self.embed_dim, out_dim)
 
 def convert_weights_to_lp(model: nn.Module, dtype=torch.float16):
     """Convert applicable model parameters to low-precision (bf16 or fp16)"""

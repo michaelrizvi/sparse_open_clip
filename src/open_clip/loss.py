@@ -130,7 +130,28 @@ class ClipLoss(nn.Module):
 
         return {"contrastive_loss": total_loss} if output_dict else total_loss
 
+class Loss(ClipLoss):
+    def __init__(self, *args, beta=0.01, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.beta = beta   
 
+    def forward(self, image_features, text_features, logit_scale, output_dict=False):
+        device = image_features.device
+        logits_per_image, logits_per_text = self.get_logits(image_features, text_features, logit_scale)
+
+        labels = self.get_ground_truth(device, logits_per_image.shape[0])
+
+        contrastive_loss = (
+            F.cross_entropy(logits_per_image, labels) +
+            F.cross_entropy(logits_per_text, labels)
+        ) / 2
+
+        total_loss = contrastive_loss + self.beta*torch.norm(image_features, p=1) + self.beta*torch.norm(text_features, p=1) 
+
+        # TODO: Add L0
+
+        return {"contrastive_loss": contrastive_loss, "l1_loss": None, "total_loss": None, "l0_loss": None} if output_dict else total_loss
+    
 class CoCaLoss(ClipLoss):
     def __init__(
             self,

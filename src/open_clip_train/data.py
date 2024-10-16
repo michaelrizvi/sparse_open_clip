@@ -27,10 +27,13 @@ except ImportError:
 
 
 class CsvDataset(Dataset):
-    def __init__(self, input_filename, transforms, img_key, caption_key, sep="\t", tokenizer=None):
+    import pdb
+    #pdb.set_trace()
+    def __init__(self, input_filename, transforms, img_key, caption_key, sep=",", tokenizer=None): # CHANGED THE DEFAULT SEPARATOR!!
         logging.debug(f'Loading csv data from {input_filename}.')
-        df = pd.read_csv(input_filename, sep=sep)
+        df = pd.read_csv(input_filename, sep=",", skipinitialspace=True)
 
+        self.directory_path = os.path.join(os.path.dirname(input_filename), 'Images')
         self.images = df[img_key].tolist()
         self.captions = df[caption_key].tolist()
         self.transforms = transforms
@@ -42,7 +45,8 @@ class CsvDataset(Dataset):
         return len(self.captions)
 
     def __getitem__(self, idx):
-        images = self.transforms(Image.open(str(self.images[idx])))
+        image_path = os.path.join(self.directory_path, self.images[idx])
+        images = self.transforms(Image.open(image_path))
         texts = self.tokenize([str(self.captions[idx])])[0]
         return images, texts
 
