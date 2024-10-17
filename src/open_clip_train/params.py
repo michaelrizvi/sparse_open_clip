@@ -452,6 +452,12 @@ def parse_args(args):
         action="store_true",
         help='Use SigLip (sigmoid) loss.'
     )
+    parser.add_argument(
+        "--disentangler-penalty",
+        type=float,
+        default=0.01,
+        help='Penalty for the L1 loss for Disentangler.'
+    )
 
     args = parser.parse_args(args)
 

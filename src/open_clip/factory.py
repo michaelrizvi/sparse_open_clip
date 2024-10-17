@@ -17,7 +17,7 @@ from .model import CustomTextCLIP, convert_weights_to_lp, convert_to_custom_text
     resize_pos_embed, get_cast_dtype, resize_text_pos_embed, set_model_preprocess_cfg
 from .model import get_clip as CLIP
 from .coca_model import CoCa
-from .loss import ClipLoss, DistillClipLoss, CoCaLoss, SigLipLoss
+from .loss import ClipLoss, DistillClipLoss, CoCaLoss, SigLipLoss, DisentangledLoss
 from .openai import load_openai_model
 from .pretrained import is_pretrained_cfg, get_pretrained_cfg, download_pretrained,\
     list_pretrained_tags_by_model, download_pretrained_from_hf
@@ -352,6 +352,17 @@ def create_loss(args):
         return CoCaLoss(
             caption_loss_weight=args.coca_caption_loss_weight,
             clip_loss_weight=args.coca_contrastive_loss_weight,
+            local_loss=args.local_loss,
+            gather_with_grad=args.gather_with_grad,
+            cache_labels=True,
+            rank=args.rank,
+            world_size=args.world_size,
+            use_horovod=args.horovod,
+        )
+    elif "disentangled" in args.model.lower():
+        import ipdb; ipdb.set_trace()
+        return DisentangledLoss(
+            penalty=args.disentangler_penalty,
             local_loss=args.local_loss,
             gather_with_grad=args.gather_with_grad,
             cache_labels=True,

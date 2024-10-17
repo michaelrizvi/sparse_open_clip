@@ -130,10 +130,11 @@ class ClipLoss(nn.Module):
 
         return {"contrastive_loss": total_loss} if output_dict else total_loss
 
-class Loss(ClipLoss):
-    def __init__(self, *args, beta=0.01, **kwargs):
+class DisentangledLoss(ClipLoss):
+    def __init__(self, *args, penalty=0.01, tolerance=1e-5, **kwargs):
         super().__init__(*args, **kwargs)
-        self.beta = beta   
+        self.penalty = penalty
+        self.tolerance = tolerance
 
     def forward(self, image_features, text_features, logit_scale, output_dict=False):
         device = image_features.device
@@ -146,11 +147,13 @@ class Loss(ClipLoss):
             F.cross_entropy(logits_per_text, labels)
         ) / 2
 
-        total_loss = contrastive_loss + self.beta*torch.norm(image_features, p=1) + self.beta*torch.norm(text_features, p=1) 
+        regularizer = self.penalty * (torch.norm(image_features, p=1) + torch.norm(text_features, p=1))
+        total_loss = contrastive_loss + regularizer
+        text_l0 = (torch.abs(text_features) > self.tolerance).float().sum(dim=1).mean()
+        # Maybe add this to the logging later...
+        #image_l0 = (torch.abs(image_features) > self.tolerance).float().sum(dim=1).mean()
 
-        # TODO: Add L0
-
-        return {"contrastive_loss": contrastive_loss, "l1_loss": None, "total_loss": None, "l0_loss": None} if output_dict else total_loss
+        return {"contrastive_loss": contrastive_loss, "l1_loss": regularizer, "total_loss": total_loss, "l0_loss": text_l0} if output_dict else total_loss
     
 class CoCaLoss(ClipLoss):
     def __init__(
