@@ -29,9 +29,9 @@ except ImportError:
 class CsvDataset(Dataset):
     import pdb
     #pdb.set_trace()
-    def __init__(self, input_filename, transforms, img_key, caption_key, sep=",", tokenizer=None): # CHANGED THE DEFAULT SEPARATOR!!
+    def __init__(self, input_filename, transforms, img_key, caption_key, sep="\t", tokenizer=None): # CHANGED THE DEFAULT SEPARATOR!!
         logging.debug(f'Loading csv data from {input_filename}.')
-        df = pd.read_csv(input_filename, sep=",", skipinitialspace=True)
+        df = pd.read_csv(input_filename, sep=sep, skipinitialspace=True)
 
         self.directory_path = os.path.join(os.path.dirname(input_filename), 'Images')
         self.images = df[img_key].tolist()

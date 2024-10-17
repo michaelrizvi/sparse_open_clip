@@ -333,6 +333,7 @@ _PRETRAINED = {
     "RN50x64": _RN50x64,
 
     "ViT-B-32": _VITB32,
+    "ViT-B-32-disentangled": _VITB32,
     "ViT-B-32-256": _VITB32_256,
     "ViT-B-32-quickgelu": _VITB32_quickgelu,
     "ViT-B-16": _VITB16,

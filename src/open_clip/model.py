@@ -218,6 +218,14 @@ def _build_text_tower(
     return text
 
 
+def get_clip(*args, cls_name="CLIP", **kwargs):
+    if cls_name == 'CLIP':
+        return CLIP(*args, **kwargs)
+    elif cls_name == 'DisentangledCLIP':
+        return DisentangledCLIP(*args, **kwargs)
+    else:
+        raise ValueError(f"Unknown CLIP class: {cls_name}")
+
 # After CLIP class, make a class DisentangledCLIP which modifies 
 class CLIP(nn.Module):
     output_dict: torch.jit.Final[bool]
@@ -398,13 +406,14 @@ class CustomTextCLIP(nn.Module):
 class DisentangledCLIP(CLIP):
     def __init__(self, *args, out_dim=1024, **kwargs):
         super().__init__(*args, **kwargs)
-        import ipdb
-        ipdb.set_trace()
         for name, param in self.named_parameters():
-            if name not in ['text_projection.weight', 'text_projection.bias', 'visual.proj.weight', 'visual.proj.bias']:
+            if name not in ['text_projection', 'visual.proj']:
                 param.requires_grad = False
-        self.text_projection = nn.Linear(self.embed_dim, out_dim)
-        self.visual.proj = nn.Linear(self.embed_dim, out_dim)
+        # TODO implement if case to manage case with bias in linear layer
+        scale_text = self.transformer.width ** -0.5
+        self.text_projection.data = torch.randn_like(self.text_projection) * scale_text
+        scale_visual = self.visual.width ** -0.5
+        self.visual.proj.data = torch.randn_like(self.visual.proj) * scale_visual
 
 def convert_weights_to_lp(model: nn.Module, dtype=torch.float16):
     """Convert applicable model parameters to low-precision (bf16 or fp16)"""
@@ -509,6 +518,18 @@ def build_model_from_openai_state_dict(
         quick_gelu=quick_gelu,  # OpenAI models were trained with QuickGELU
         cast_dtype=cast_dtype,
     )
+
+    # Potential intervention for using "disentangled" version of clip
+    #import ipdb
+    #ipdb.set_trace()
+    #model = DisentangledCLIP(
+    #    embed_dim,
+    #    out_dim=1024,
+    #    vision_cfg=vision_cfg,
+    #    text_cfg=text_cfg,
+    #    quick_gelu=quick_gelu,  # OpenAI models were trained with QuickGELU
+    #    cast_dtype=cast_dtype, 
+    #) 
 
     for key in ["input_resolution", "context_length", "vocab_size"]:
         state_dict.pop(key, None)

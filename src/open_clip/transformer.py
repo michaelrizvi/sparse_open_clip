@@ -468,6 +468,7 @@ class VisionTransformer(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=width, kernel_size=patch_size, stride=patch_size, bias=False)
 
         # class embeddings and positional embeddings
+        self.width = width
         scale = width ** -0.5
         self.class_embedding = nn.Parameter(scale * torch.randn(width))
         if pos_embed_type == 'learnable':
