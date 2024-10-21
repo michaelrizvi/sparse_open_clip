@@ -364,7 +364,6 @@ def create_loss(args):
             use_horovod=args.horovod,
         )
     elif "disentangled" in args.model.lower():
-        import ipdb; ipdb.set_trace()
         return DisentangledLoss(
             penalty=args.disentangler_penalty,
             local_loss=args.local_loss,
