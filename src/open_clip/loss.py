@@ -153,7 +153,10 @@ class DisentangledLoss(ClipLoss):
         # Maybe add this to the logging later...
         #image_l0 = (torch.abs(image_features) > self.tolerance).float().sum(dim=1).mean()
 
-        return {"contrastive_loss": contrastive_loss, "l1_loss": regularizer, "total_loss": total_loss, "l0_loss": text_l0} if output_dict else total_loss
+        return {"contrastive_loss": contrastive_loss, 
+                "l1_loss": regularizer, 
+                "total_loss": total_loss,
+                "l0_loss": text_l0} if output_dict else total_loss
     
 class CoCaLoss(ClipLoss):
     def __init__(

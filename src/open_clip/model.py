@@ -226,7 +226,6 @@ def get_clip(*args, cls_name="CLIP", **kwargs):
     else:
         raise ValueError(f"Unknown CLIP class: {cls_name}")
 
-# After CLIP class, make a class DisentangledCLIP which modifies 
 class CLIP(nn.Module):
     output_dict: torch.jit.Final[bool]
 
@@ -410,6 +409,9 @@ class DisentangledCLIP(CLIP):
             if name not in ['text_projection', 'visual.proj']:
                 param.requires_grad = False
         # TODO implement if case to manage case with bias in linear layer
+        self.reinit_weights()
+    
+    def reinit_weights(self):
         scale_text = self.transformer.width ** -0.5
         self.text_projection.data = torch.randn_like(self.text_projection) * scale_text
         scale_visual = self.visual.width ** -0.5

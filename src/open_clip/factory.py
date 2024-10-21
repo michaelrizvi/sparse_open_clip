@@ -16,6 +16,7 @@ from .convert import convert_state_dict
 from .model import CustomTextCLIP, convert_weights_to_lp, convert_to_custom_text_state_dict,\
     resize_pos_embed, get_cast_dtype, resize_text_pos_embed, set_model_preprocess_cfg
 from .model import get_clip as CLIP
+from .model import DisentangledCLIP
 from .coca_model import CoCa
 from .loss import ClipLoss, DistillClipLoss, CoCaLoss, SigLipLoss, DisentangledLoss
 from .openai import load_openai_model
@@ -177,6 +178,9 @@ def load_checkpoint(
 
     # Finally, load the massaged state_dict into model
     incompatible_keys = model.load_state_dict(state_dict, strict=strict)
+    # If disentangled CLIP reinit the last layer
+    if isinstance(model, DisentangledCLIP):
+        model.reinit_weights()
     return incompatible_keys
 
 
