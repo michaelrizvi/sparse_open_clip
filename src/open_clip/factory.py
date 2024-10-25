@@ -180,7 +180,7 @@ def load_checkpoint(
     incompatible_keys = model.load_state_dict(state_dict, strict=strict)
     # If disentangled CLIP reinit the last layer
     if isinstance(model, DisentangledCLIP):
-        model.reinit_weights()
+        model.reinit_last_layer()
     return incompatible_keys
 
 
