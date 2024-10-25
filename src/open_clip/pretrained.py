@@ -335,6 +335,7 @@ _PRETRAINED = {
     "ViT-B-32": _VITB32,
     "ViT-B-32-disentangled": _VITB32,
     "ViT-B-32-last-layer": _VITB32,
+    "ViT-B-32-disentangled-full": _VITB32,
     "ViT-B-32-256": _VITB32_256,
     "ViT-B-32-quickgelu": _VITB32_quickgelu,
     "ViT-B-16": _VITB16,
