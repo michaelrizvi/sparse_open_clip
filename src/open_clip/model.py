@@ -413,12 +413,10 @@ class DisentangledCLIP(CLIP):
     def reinit_last_layer(self):
         width = self.text_projection.shape[0]
         pool_dim = self.visual.proj.data.shape[0]
-        self.text_projection = nn.Parameter(torch.empty(width, self.out_dim))
-        self.visual.proj = nn.Parameter(torch.empty(pool_dim, self.out_dim))
         scale_text = self.transformer.width ** -0.5
-        self.text_projection.data = torch.randn_like(self.text_projection) * scale_text
+        self.text_projection.data = torch.randn(width, self.out_dim) * scale_text
         scale_visual = self.visual.width ** -0.5
-        self.visual.proj.data = torch.randn_like(self.visual.proj) * scale_visual
+        self.visual.proj.data = torch.randn(pool_dim, self.out_dim) * scale_visual
 
 def convert_weights_to_lp(model: nn.Module, dtype=torch.float16):
     """Convert applicable model parameters to low-precision (bf16 or fp16)"""
