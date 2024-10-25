@@ -151,3 +151,8 @@ core.*
 
 # Allow
 !src/evaluation/misc/results_dbs/*
+
+# Cluster stuff
+*.sh
+scripts
+slurm*
