@@ -411,6 +411,10 @@ class DisentangledCLIP(CLIP):
                 param.requires_grad = False
     
     def reinit_last_layer(self):
+        width = self.text_projection.shape[0]
+        pool_dim = self.visual.proj.data.shape[0]
+        self.text_projection = nn.Parameter(torch.empty(width, self.out_dim))
+        self.visual.proj = nn.Parameter(torch.empty(pool_dim, self.out_dim))
         scale_text = self.transformer.width ** -0.5
         self.text_projection.data = torch.randn_like(self.text_projection) * scale_text
         scale_visual = self.visual.width ** -0.5
