@@ -178,9 +178,6 @@ def load_checkpoint(
 
     # Finally, load the massaged state_dict into model
     incompatible_keys = model.load_state_dict(state_dict, strict=strict)
-    # If disentangled CLIP reinit the last layer
-    if isinstance(model, DisentangledCLIP):
-        model.reinit_last_layer()
     return incompatible_keys
 
 
@@ -310,6 +307,10 @@ def create_model(
             if checkpoint_path:
                 logging.info(f'Loading pretrained {model_name} weights ({pretrained}).')
                 load_checkpoint(model, checkpoint_path)
+                # If disentangled CLIP reinit the last layer
+                if isinstance(model, DisentangledCLIP):
+                    model.reinit_last_layer()
+                    model.to(device)
             else:
                 error_str = (
                     f'Pretrained weights ({pretrained}) not found for model {model_name}.'
@@ -320,6 +321,10 @@ def create_model(
         elif has_hf_hub_prefix:
             logging.info(f'Loading pretrained {model_name} weights ({checkpoint_path}).')
             load_checkpoint(model, checkpoint_path)
+            # If disentangled CLIP reinit the last layer
+            if isinstance(model, DisentangledCLIP):
+                model.reinit_last_layer()
+                model.to(device)
             pretrained_loaded = True
 
         if require_pretrained and not pretrained_loaded:
