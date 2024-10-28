@@ -310,6 +310,7 @@ def create_model(
                 # If disentangled CLIP reinit the last layer
                 if isinstance(model, DisentangledCLIP):
                     model.reinit_last_layer()
+                    model.embed_dim = model.out_dim
                     model.to(device)
             else:
                 error_str = (
@@ -324,6 +325,7 @@ def create_model(
             # If disentangled CLIP reinit the last layer
             if isinstance(model, DisentangledCLIP):
                 model.reinit_last_layer()
+                model.embed_dim = model.out_dim
                 model.to(device)
             pretrained_loaded = True
 
