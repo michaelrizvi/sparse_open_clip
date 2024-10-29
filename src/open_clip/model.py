@@ -403,9 +403,9 @@ class CustomTextCLIP(nn.Module):
         return image_features, text_features, self.logit_scale.exp()
 
 class DisentangledCLIP(CLIP):
-    def __init__(self, *args, out_dim=1024, **kwargs):
+    def __init__(self, *args, dis_embed_dim=1024, **kwargs):
         super().__init__(*args, **kwargs)
-        self.out_dim = out_dim
+        self.dis_embed_dim = dis_embed_dim
         for name, param in self.named_parameters():
             if name not in ['text_projection', 'visual.proj']:
                 param.requires_grad = False
@@ -413,8 +413,8 @@ class DisentangledCLIP(CLIP):
     def reinit_last_layer(self):
         width = self.text_projection.shape[0]
         pool_dim = self.visual.proj.data.shape[0]
-        self.text_projection = nn.Parameter(torch.empty(width, self.out_dim))
-        self.visual.proj = nn.Parameter(torch.empty(pool_dim, self.out_dim))
+        self.text_projection = nn.Parameter(torch.empty(width, self.dis_embed_dim))
+        self.visual.proj = nn.Parameter(torch.empty(pool_dim, self.dis_embed_dim))
         scale_text = self.transformer.width ** -0.5
         self.text_projection.data = torch.randn_like(self.text_projection) * scale_text
         scale_visual = self.visual.width ** -0.5

@@ -1,5 +1,6 @@
 {
     "embed_dim": 512,
+    "dis_embed_dim": 2048,
     "cls_name": "DisentangledCLIP",
     "vision_cfg": {
         "image_size": 224,
