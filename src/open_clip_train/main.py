@@ -440,7 +440,7 @@ def main(args):
             evaluate(model, data, completed_epoch, args, tb_writer=writer, tokenizer=tokenizer)
 
         if args.semantic_coherence:
-            evaluate_interpretability(model, data, completed_epoch, args)
+            evaluate_interpretability(model, preprocess_val, completed_epoch, args)
         
         # Saving checkpoints.
         if args.save_logs:
