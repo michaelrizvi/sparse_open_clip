@@ -221,9 +221,9 @@ def load_clip_model(weight_path=None, model_name='ViT-B-32', pretrained='laion40
 
 
 def get_activation_data(model, preprocess, args, train=False):
-    device = torch.device("cpu")
-    input_dtype = get_input_dtype("amp")
-    autocast = get_autocast("amp")
+    device = torch.device(args.device)
+    input_dtype = get_input_dtype(args.precision)
+    autocast = get_autocast(args.precision)
 
     # Load CIFAR-100 dataset
     cifar100 = datasets.CIFAR100(root='./data', train=train, download=True, transform=preprocess)
