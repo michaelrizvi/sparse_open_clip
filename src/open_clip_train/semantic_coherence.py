@@ -14,7 +14,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 import os
 import sys
-sys.path.append('src')  # Add the src directory to the Python path.
+sys.path.append('src') # Add the src directory to the Python path.
 import open_clip
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -212,7 +212,7 @@ def train_cifar_classifier(train_activations, train_labels, val_activations, val
     return cifar_classifier_weights, logreg_accuracy
 
 
-def load_clip_model(weight_path=None, model_name='ViT-B-32', pretrained='openai'):
+def load_clip_model(weight_path=None, model_name='ViT-B-32', pretrained='laion400m_e32'):
     model, _, preprocess = open_clip.create_model_and_transforms(model_name, pretrained=pretrained)
     if weight_path:
         model.load_state_dict(torch.load(weight_path))
@@ -221,9 +221,9 @@ def load_clip_model(weight_path=None, model_name='ViT-B-32', pretrained='openai'
 
 
 def get_activation_data(model, preprocess, args, train=False):
-    device = torch.device(args.device)
-    input_dtype = get_input_dtype(args.precision)
-    autocast = get_autocast(args.precision)
+    device = torch.device("cpu")
+    input_dtype = get_input_dtype("amp")
+    autocast = get_autocast("amp")
 
     # Load CIFAR-100 dataset
     cifar100 = datasets.CIFAR100(root='./data', train=train, download=True, transform=preprocess)
@@ -236,7 +236,7 @@ def get_activation_data(model, preprocess, args, train=False):
         with torch.no_grad():
             with autocast():
                 images = images.to(device=device, dtype=input_dtype, non_blocking=True)
-                activations, _, _ = model(images)
+                activations = model.encode_image(images)
                 all_activations.append(activations.cpu())
                 all_labels.append(labels.cpu())
     
