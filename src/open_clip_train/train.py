@@ -393,14 +393,14 @@ def maybe_compute_generative_loss(model_out):
 
 
 def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
-    log_data = {}
+    metrics = {}
     model.eval()
 
     if weight_path and preprocess is None:
         model, preprocess = load_clip_model(weight_path)
 
     # Get the activation data using cifar100 dataset
-    train_acts, train_labels = get_activation_data(model, preprocess, args, train=False)
+    train_acts, train_labels = get_activation_data(model, preprocess, args, train=True)
     val_acts, val_labels = get_activation_data(model, preprocess, args, train=False)
 
     # Train a classifier on the activation label pairs
@@ -409,10 +409,19 @@ def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
     # Get semantic coherence of the weight matrix
     semantic_coherence = compute_semantic_coherence(cifar_classifier_weights)
     
-    log_data = {
-            "semantic_coherence": semantic_coherence,
-            "cifar_accuracy": logreg_acc
-        }            
+    # Log stuff
+    logging.info(f"Semantic Coherence: {semantic_coherence}") 
+    logging.info(f"CIFAR-100 Classifier Accuracy: {logreg_acc}")
+
+    metrics.update(
+        {"semantic_coherence": semantic_coherence, "cifar_accuracy": logreg_acc})
+
+    log_data = {"val/" + name: val for name, val in metrics.items()}       
+
+    if args.save_logs:
+        with open(os.path.join(args.checkpoint_path, "results.jsonl"), "a+") as f:
+            f.write(json.dumps(metrics))
+            f.write("\n")
 
     if args.wandb:
         assert wandb is not None, 'Please install wandb.'
