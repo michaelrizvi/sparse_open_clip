@@ -147,7 +147,7 @@ class DisentangledLoss(ClipLoss):
             F.cross_entropy(logits_per_text, labels)
         ) / 2
 
-        regularizer = self.penalty * (torch.norm(image_features, p=1) + torch.norm(text_features, p=1))
+        regularizer = self.penalty * (torch.norm(image_features, p=1, dim=-1) + torch.norm(text_features, p=1, dim=-1)).mean()
         total_loss = contrastive_loss + regularizer
         text_l0 = (torch.abs(text_features) > self.tolerance).float().sum(dim=1).mean()
         # Maybe add this to the logging later...
