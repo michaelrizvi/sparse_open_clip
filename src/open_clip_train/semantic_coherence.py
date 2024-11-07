@@ -199,7 +199,7 @@ def compute_semantic_coherence(weights):
 
 def train_cifar_classifier(train_activations, train_labels, val_activations, val_labels):
     # Make classifier and train it
-    logreg_clf = make_pipeline(StandardScaler(), LogisticRegression(penalty='l1', solver='saga', max_iter=2))
+    logreg_clf = make_pipeline(StandardScaler(), LogisticRegression(penalty='l1', solver='saga', max_iter=2, verbose=1))
     logreg_clf.fit(train_activations, train_labels)
     
     # Test classifier on validation set
@@ -228,7 +228,7 @@ def get_activation_data(model, preprocess, args, train=False):
     # Load CIFAR-100 dataset
     cifar100 = datasets.CIFAR100(root='./data', train=train, download=True, transform=preprocess)
 
-    dataloader = DataLoader(cifar100, batch_size=512, shuffle=False)
+    dataloader = DataLoader(cifar100, batch_size=256, shuffle=False)
 
     all_activations = []
     all_labels = []

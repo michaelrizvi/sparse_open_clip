@@ -410,11 +410,13 @@ def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
     semantic_coherence = compute_semantic_coherence(cifar_classifier_weights)
     
     # Log stuff
-    logging.info(f"Semantic Coherence: {semantic_coherence}") 
+    avg_semantic_coherence = np.mean(semantic_coherence)
+    logging.info(f"Average Semantic Coherence: {avg_semantic_coherence}")
     logging.info(f"CIFAR-100 Classifier Accuracy: {logreg_acc}")
 
+    metrics.update({"avg_semantic_coherence": avg_semantic_coherence, "cifar_accuracy": logreg_acc})
     metrics.update(
-        {"semantic_coherence": semantic_coherence, "cifar_accuracy": logreg_acc})
+        {"avg_semantic_coherence": avg_semantic_coherence, "cifar_accuracy": logreg_acc})
 
     log_data = {"val/" + name: val for name, val in metrics.items()}       
 
@@ -428,5 +430,15 @@ def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
         step = None
         log_data['epoch'] = epoch
         wandb.log(log_data, step=step)
+
+        data = [[x, y] for (x, y) in zip(np.arange(1,50), semantic_coherence)]
+        table = wandb.Table(data=data, columns=["x", "y"])
+        wandb.log(
+            {
+                "val/semantic_coherence": wandb.plot.line(
+                    table, "Top K features", "semantic coherence", title="semantic coherence vs top k features"
+                )
+            }
+        )
 
     return log_data
