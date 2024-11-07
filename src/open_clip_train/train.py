@@ -432,11 +432,11 @@ def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
         wandb.log(log_data, step=step)
 
         data = [[x, y] for (x, y) in zip(np.arange(1,50), semantic_coherence)]
-        table = wandb.Table(data=data, columns=["x", "y"])
+        table = wandb.Table(data=data, columns=["Top K features", "Semantic coherence"])
         wandb.log(
             {
                 "val/semantic_coherence": wandb.plot.line(
-                    table, "Top K features", "semantic coherence", title="semantic coherence vs top k features"
+                    table, "Top K features", "Semantic coherence", title="Semantic coherence on CIFAR-100"
                 )
             }
         )
