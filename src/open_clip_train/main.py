@@ -34,7 +34,7 @@ from open_clip_train.distributed import is_master, init_distributed_device, broa
 from open_clip_train.logger import setup_logging
 from open_clip_train.params import parse_args
 from open_clip_train.scheduler import cosine_lr, const_lr, const_lr_cooldown
-from open_clip_train.train import train_one_epoch, evaluate
+from open_clip_train.train import train_one_epoch, evaluate, evaluate_interpretability
 from open_clip_train.file_utils import pt_load, check_exists, start_sync_process, remote_sync
 
 
@@ -439,6 +439,9 @@ def main(args):
         if any(v in data for v in ('val', 'imagenet-val', 'imagenet-v2')):
             evaluate(model, data, completed_epoch, args, tb_writer=writer, tokenizer=tokenizer)
 
+        if args.semantic_coherence:
+            evaluate_interpretability(model, data, completed_epoch, args)
+        
         # Saving checkpoints.
         if args.save_logs:
             checkpoint_dict = {

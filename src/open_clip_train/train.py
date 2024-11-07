@@ -19,6 +19,14 @@ from open_clip_train.distributed import is_master
 from open_clip_train.zero_shot import zero_shot_eval
 from open_clip_train.precision import get_autocast
 
+import os
+import sys
+sys.path.append('src')  # Add the src directory to the Python path.
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+from tqdm import tqdm
+from open_clip_train.semantic_coherence import train_cifar_classifier, compute_semantic_coherence, get_activation_data, load_clip_model
+
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -382,3 +390,34 @@ def maybe_compute_generative_loss(model_out):
         token_logits = model_out["logits"]
         token_labels = model_out["labels"]
         return F.cross_entropy(token_logits.permute(0, 2, 1), token_labels)
+
+
+def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
+    log_data = {}
+    model.eval()
+
+    if weight_path and preprocess is None:
+        model, preprocess = load_clip_model(weight_path)
+
+    # Get the activation data using cifar100 dataset
+    train_acts, train_labels = get_activation_data(model, preprocess, args, train=False)
+    val_acts, val_labels = get_activation_data(model, preprocess, args, train=False)
+
+    # Train a classifier on the activation label pairs
+    cifar_classifier_weights, logreg_acc = train_cifar_classifier(train_acts, train_labels, val_acts, val_labels)
+
+    # Get semantic coherence of the weight matrix
+    semantic_coherence = compute_semantic_coherence(cifar_classifier_weights)
+    
+    log_data = {
+            "semantic_coherence": semantic_coherence,
+            "cifar_accuracy": logreg_acc
+        }            
+
+    if args.wandb:
+        assert wandb is not None, 'Please install wandb.'
+        step = None
+        log_data['epoch'] = epoch
+        wandb.log(log_data, step=step)
+
+    return log_data
