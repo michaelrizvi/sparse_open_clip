@@ -228,7 +228,7 @@ def get_activation_data(model, preprocess, args, train=False):
     # Load CIFAR-100 dataset
     cifar100 = datasets.CIFAR100(root='./data', train=train, download=True, transform=preprocess)
 
-    dataloader = DataLoader(cifar100, batch_size=32, shuffle=False)
+    dataloader = DataLoader(cifar100, batch_size=512, shuffle=False)
 
     all_activations = []
     all_labels = []
