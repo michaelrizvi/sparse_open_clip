@@ -405,6 +405,8 @@ def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
 
     # Train a classifier on the activation label pairs
     cifar_classifier_weights, logreg_acc = train_cifar_classifier(train_acts, train_labels, val_acts, val_labels)
+    nonzero_weights = np.count_nonzero(cifar_classifier_weights)
+    metrics.update({"nonzero_weights": nonzero_weights})
 
     # Get semantic coherence of the weight matrix
     semantic_coherence = compute_semantic_coherence(cifar_classifier_weights)
