@@ -377,6 +377,7 @@ def create_loss(args):
             rank=args.rank,
             world_size=args.world_size,
             use_horovod=args.horovod,
+            reg_mode=args.reg_mode
         )
     elif args.siglip:
         assert not args.horovod, "Horovod not currently supported for SigLip"

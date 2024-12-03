@@ -410,7 +410,7 @@ def parse_args(args):
         "--remote-sync",
         type=str,
         default=None,
-        help="Optinoally sync with a remote path specified by this arg",
+        help="Optinally sync with a remote path specified by this arg",
     )
     parser.add_argument(
         "--remote-sync-frequency",
@@ -462,6 +462,11 @@ def parse_args(args):
         "--semantic-coherence",
         default=True,
         help='Calculate or not the semantic coherence at each epoch.'
+    )
+    parser.add_argument(
+        "--reg-mode",
+        default='penalized',
+        help='Use either L1 penalty (penalized) or constrained optim (constrained) for the disentangler.'
     )
 
     args = parser.parse_args(args)
