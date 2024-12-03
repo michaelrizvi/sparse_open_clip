@@ -131,10 +131,19 @@ class ClipLoss(nn.Module):
         return {"contrastive_loss": total_loss} if output_dict else total_loss
 
 class DisentangledLoss(ClipLoss):
-    def __init__(self, *args, penalty=0.01, tolerance=1e-5, **kwargs):
+    def __init__(self, *args, reg_mode='penalized',bound=1, dual_lr=0.1, penalty=0.01, tolerance=1e-5, **kwargs):
         super().__init__(*args, **kwargs)
-        self.penalty = penalty
         self.tolerance = tolerance
+        self.reg_mode = reg_mode
+        if reg_mode == 'penalized':
+            self.penalty = penalty
+        elif reg_mode == 'constrained':
+            self.dual_lr = dual_lr
+            self.bound = bound
+            self.lang_mult_image = 0
+            self.lang_mult_text = 0
+        else:
+            raise ValueError(f"Unknown regularization mode {reg_mode}")
 
     def forward(self, image_features, text_features, logit_scale, output_dict=False):
         device = image_features.device
@@ -147,16 +156,30 @@ class DisentangledLoss(ClipLoss):
             F.cross_entropy(logits_per_text, labels)
         ) / 2
 
-        regularizer = self.penalty * (torch.norm(image_features, p=1, dim=-1) + torch.norm(text_features, p=1, dim=-1)).mean()
-        total_loss = contrastive_loss + regularizer
-        text_l0 = (torch.abs(text_features) > self.tolerance).float().sum(dim=1).mean()
+        if self.reg_mode == 'constrained':
+            defect_image = torch.norm(image_features, p=1, dim=-1).mean() - self.bound
+            defect_text = torch.norm(text_features, p=1, dim=-1).mean() - self.bound
+            total_loss = contrastive_loss + self.lang_mult_image*defect_image + self.lang_mult_text*defect_text
+            self.lang_mult_image += self.dual_lr*defect_image.item()
+            self.lang_mult_text += self.dual_lr*defect_text.item()
+            self.lang_mult_image = max(0, self.lang_mult_image)
+            self.lang_mult_text = max(0, self.lang_mult_text)
+            # TODO: add dual restart: when constraint is satisfied restart multipliers to 0
+            # TODO: add scheduling on the bound
+            # TODO: add proportion p in [0,1] bound = sqrt(p*d) where d is dim of embedding
+        elif self.reg_mode == 'penalized':
+            regularizer = self.penalty * (torch.norm(image_features, p=1, dim=-1) + torch.norm(text_features, p=1, dim=-1)).mean()
+            total_loss = contrastive_loss + regularizer
+            text_l0 = (torch.abs(text_features) > self.tolerance).float().sum(dim=1).mean()
+        else:
+            raise ValueError(f"Unknown regularization mode {self.reg_mode}")
         # Maybe add this to the logging later...
         #image_l0 = (torch.abs(image_features) > self.tolerance).float().sum(dim=1).mean()
 
         return {"contrastive_loss": contrastive_loss, 
                 "l1_loss": regularizer, 
                 "total_loss": total_loss,
-                "l0_loss": text_l0} if output_dict else total_loss
+                "l0_loss": text_l0,} if output_dict else total_loss
     
 class CoCaLoss(ClipLoss):
     def __init__(

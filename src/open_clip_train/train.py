@@ -400,13 +400,18 @@ def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
         model, preprocess = load_clip_model(weight_path)
 
     # Get the activation data using cifar100 dataset
+    logging.info("Getting activation data")
     train_acts, train_labels = get_activation_data(model, preprocess, args, train=True)
     val_acts, val_labels = get_activation_data(model, preprocess, args, train=False)
 
     # Train a classifier on the activation label pairs
+    logging.info("Training CIFAR-100 classifier")
     cifar_classifier_weights, logreg_acc = train_cifar_classifier(train_acts, train_labels, val_acts, val_labels)
+    nonzero_weights = np.count_nonzero(cifar_classifier_weights)
+    metrics.update({"nonzero_weights": nonzero_weights})
 
     # Get semantic coherence of the weight matrix
+    logging.info("Computing semantic coherence")
     semantic_coherence = compute_semantic_coherence(cifar_classifier_weights)
     
     # Log stuff
@@ -436,7 +441,7 @@ def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
         wandb.log(
             {
                 "val/semantic_coherence": wandb.plot.line(
-                    table, "Top K features", "Semantic coherence", title="Semantic coherence on CIFAR-100"
+                    table, "Top K features", "Semantic coherence", title=f"Semantic coherence at epoch {epoch}"
                 )
             }
         )

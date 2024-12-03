@@ -199,7 +199,7 @@ def compute_semantic_coherence(weights):
 
 def train_cifar_classifier(train_activations, train_labels, val_activations, val_labels):
     # Make classifier and train it
-    logreg_clf = make_pipeline(StandardScaler(), LogisticRegression(penalty='l1', solver='saga', max_iter=2, verbose=1))
+    logreg_clf = make_pipeline(StandardScaler(), LogisticRegression(penalty='l1', solver='saga', max_iter=10, verbose=1))
     logreg_clf.fit(train_activations, train_labels)
     
     # Test classifier on validation set

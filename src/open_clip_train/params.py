@@ -459,7 +459,7 @@ def parse_args(args):
         help='Penalty for the L1 loss for Disentangler.'
     )
     parser.add_argument(
-        "--semantic_coherence",
+        "--semantic-coherence",
         default=True,
         help='Calculate or not the semantic coherence at each epoch.'
     )
