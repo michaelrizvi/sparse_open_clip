@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
+import numpy as np
 
 try:
     import torch.distributed.nn
@@ -131,7 +132,7 @@ class ClipLoss(nn.Module):
         return {"contrastive_loss": total_loss} if output_dict else total_loss
 
 class DisentangledLoss(ClipLoss):
-    def __init__(self, *args, reg_mode='penalized',bound=1, dual_lr=0.1, penalty=0.01, tolerance=1e-5, **kwargs):
+    def __init__(self, *args, reg_mode='penalized',nb_sparse=100, dual_lr=0.1, penalty=0.01, tolerance=1e-5, **kwargs):
         super().__init__(*args, **kwargs)
         self.tolerance = tolerance
         self.reg_mode = reg_mode
@@ -139,7 +140,7 @@ class DisentangledLoss(ClipLoss):
             self.penalty = penalty
         elif reg_mode == 'constrained':
             self.dual_lr = dual_lr
-            self.bound = bound
+            self.bound = np.ceil(np.sqrt(nb_sparse))
             self.lang_mult_image = 0
             self.lang_mult_text = 0
         else:
