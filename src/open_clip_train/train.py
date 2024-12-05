@@ -26,6 +26,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
 from open_clip_train.semantic_coherence import train_cifar_classifier, compute_semantic_coherence, get_activation_data, load_clip_model
+from open_clip.loss import DisentangledLoss
 
 
 class AverageMeter(object):
@@ -114,8 +115,12 @@ def train_one_epoch(model, data, loss, epoch, optimizer, scaler, scheduler, dist
                     model_out.update({f'dist_{k}': v for k, v in dist_model_out.items()})
                 losses = loss(**model_out, output_dict=True)
 
-                total_loss = sum(losses.values())
-                losses["loss"] = total_loss
+                # Fix for Disentangled loss, THIS IS NOT DONE FOR accum_freq>1
+                if isinstance(loss, DisentangledLoss):
+                    total_loss = losses["total_loss"]
+                else:
+                    total_loss = sum(losses.values())
+                    losses["loss"] = total_loss
 
             backward(total_loss, scaler)
         else:

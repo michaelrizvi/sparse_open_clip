@@ -150,8 +150,6 @@ class DisentangledLoss(ClipLoss):
         regularizer = self.penalty * (torch.norm(image_features, p=1, dim=-1) + torch.norm(text_features, p=1, dim=-1)).mean()
         total_loss = contrastive_loss + regularizer
         text_l0 = (torch.abs(text_features) > self.tolerance).float().sum(dim=1).mean()
-        # Maybe add this to the logging later...
-        #image_l0 = (torch.abs(image_features) > self.tolerance).float().sum(dim=1).mean()
 
         return {"contrastive_loss": contrastive_loss, 
                 "l1_loss": regularizer, 
