@@ -201,7 +201,7 @@ def train_cifar_classifier(train_activations, train_labels, val_activations, val
     # Make classifier and train it
     logreg_clf = make_pipeline(StandardScaler(), LogisticRegression(penalty='l1', solver='saga', max_iter=2, verbose=1))
     logreg_clf.fit(train_activations, train_labels)
-    
+     
     # Test classifier on validation set
     logreg_predictions = logreg_clf.predict(val_activations)
     logreg_accuracy = accuracy_score(val_labels, logreg_predictions)

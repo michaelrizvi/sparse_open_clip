@@ -408,6 +408,13 @@ def evaluate_interpretability(model, preprocess, epoch, args, weight_path=None):
     train_acts, train_labels = get_activation_data(model, preprocess, args, train=True)
     val_acts, val_labels = get_activation_data(model, preprocess, args, train=False)
 
+    # Calculate metrics on the activation data
+    avg_train_sparsity = np.mean(np.count_nonzero(train_acts, axis=1) / train_acts.shape[1])
+    var_train_sparsity = np.var(np.count_nonzero(train_acts, axis=1) / train_acts.shape[1])
+    logging.info(f"Average Sparsity CIFAR100: {avg_train_sparsity}")
+    logging.info(f"Variance Sparsity CIFAR100: {var_train_sparsity}")
+    metrics.update({"avg_train_sparsity": avg_train_sparsity, "var_train_sparsity": var_train_sparsity})
+
     # Train a classifier on the activation label pairs
     cifar_classifier_weights, logreg_acc = train_cifar_classifier(train_acts, train_labels, val_acts, val_labels)
     nonzero_weights = np.count_nonzero(cifar_classifier_weights)
